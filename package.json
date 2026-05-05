@@ -1,0 +1,24 @@
+{
+  "name": "sistema-gestao-marcas-fabricantes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gitIsaacVinicius/sistema-gestao-marcas-fabricantes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gitIsaacVinicius/sistema-gestao-marcas-fabricantes/issues"
+  },
+  "homepage": "https://github.com/gitIsaacVinicius/sistema-gestao-marcas-fabricantes#readme",
+  "dependencies": {
+    "knex": "^3.2.10",
+    "mysql2": "^3.22.3"
+  }
+}
