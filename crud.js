@@ -20,7 +20,7 @@ async function criarFabricante(tipo_pessoa, documento_fiscal, nome_fabricante, e
 }
 
 async function listarFabricantes() {
-    return await db('Fabricante').select('*')
+    return await db('Fabricante').where('status_fabricante', 'Ativo').select('*')
 }
 
 async function atualizarFabricante(id, tipo_pessoa, documento_fiscal, nome_fabricante, email_fabricante, telefone_fabricante, cep, estado, cidade, bairro, logradouro, numero, complemento) {
@@ -40,22 +40,24 @@ async function atualizarFabricante(id, tipo_pessoa, documento_fiscal, nome_fabri
     })
 }
 
-async function deletarFabricante(id) {
-    return await db('Fabricante').where({ id }).del()
+async function desativarFabricante(id) {
+  return await db('Fabricante')
+    .where({ id })
+    .update({ status_fabricante: 'inativo' });
 }
 
+
 // CRUD de Marca
-async function criarMarca(fk_idFabricante, nome_marca, logotipo, status_marca) {
+async function criarMarca(fk_idFabricante, nome_marca, logotipo) {
     return await db('Marca').insert({
         fk_idFabricante,
         nome_marca,
         logotipo,
-        status_marca
     })
 }
 
 async function listarMarcas() {
-    return await db('Marca').select('*')
+    return await db('Marca').where('status_marca', 'Ativo').select('*')
 }
 
 async function atualizarMarca(id, fk_idFabricante, nome_marca, logotipo, status_marca) {
@@ -67,17 +69,19 @@ async function atualizarMarca(id, fk_idFabricante, nome_marca, logotipo, status_
     })
 }
 
-async function deletarMarca(id) {
-    return await db('Marca').where({ id }).del()
+async function desativarMarca(id) {
+  return await db('Marca')
+    .where({ id })
+    .update({ status_marca: 'inativo' });
 }
 
 module.exports = {
     criarFabricante,
     listarFabricantes,
     atualizarFabricante,
-    deletarFabricante,
+    desativarFabricante,
     criarMarca,
     listarMarcas,
     atualizarMarca,
-    deletarMarca
+    desativarMarca
 }
