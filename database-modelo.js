@@ -10,4 +10,4 @@ const connection = knex({
     }
 })
 
-module.exports = knex
+module.exports = connection
