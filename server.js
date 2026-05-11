@@ -36,7 +36,7 @@ app.post('/api/fabricantes', async (req, res) => {
             complemento
         } = req.body
 
-        await crud.criarFabricante(
+        const [insertedId] = await crud.criarFabricante(
             tipo_pessoa,
             documento_fiscal,
             nome_fabricante,
@@ -51,7 +51,7 @@ app.post('/api/fabricantes', async (req, res) => {
             complemento
         )
 
-        res.status(201).json({ message: 'Fabricante cadastrado com sucesso!' })
+        res.status(201).json({ message: 'Fabricante cadastrado com sucesso!', id: insertedId, nome_fabricante })
     } catch (error) {
         console.error('Erro ao criar fabricante:', error)
         res.status(500).json({ message: 'Erro ao cadastrar fabricante.', error: error.message })
@@ -130,8 +130,8 @@ app.delete('/api/fabricantes/:id', async (req, res) => {
 // Criar marca
 app.post('/api/marcas', async (req, res) => {
     try {
-        const { fk_idFabricante, nome_marca, logotipo } = req.body
-        await crud.criarMarca(fk_idFabricante, nome_marca, logotipo)
+        const { fk_idFabricante, nome_marca, logotipo_marca } = req.body
+        await crud.criarMarca(fk_idFabricante, nome_marca, logotipo_marca)
         res.status(201).json({ message: 'Marca cadastrada com sucesso!' })
     } catch (error) {
         console.error('Erro ao criar marca:', error)
@@ -154,8 +154,8 @@ app.get('/api/marcas', async (req, res) => {
 app.put('/api/marcas/:id', async (req, res) => {
     try {
         const { id } = req.params
-        const { fk_idFabricante, nome_marca, logotipo, status_marca } = req.body
-        await crud.atualizarMarca(id, fk_idFabricante, nome_marca, logotipo, status_marca)
+        const { fk_idFabricante, nome_marca, logotipo_marca, status_marca } = req.body
+        await crud.atualizarMarca(id, fk_idFabricante, nome_marca, logotipo_marca, status_marca)
         res.json({ message: 'Marca atualizada com sucesso!' })
     } catch (error) {
         console.error('Erro ao atualizar marca:', error)
