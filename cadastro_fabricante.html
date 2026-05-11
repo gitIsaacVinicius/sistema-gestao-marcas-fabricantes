@@ -202,9 +202,13 @@
                     form.reset();
                     form.classList.remove('was-validated');
 
-                    // Redireciona para cadastro de marca após 1.5 segundos
+                    // Redireciona para cadastro de marca com o ID do fabricante recém-cadastrado
                     setTimeout(() => {
-                        window.location.href = 'cadastro_marca.html';
+                        const params = new URLSearchParams({
+                            fabricanteId: resultado.id,
+                            fabricanteNome: resultado.nome_fabricante
+                        });
+                        window.location.href = 'cadastro_marca.html?' + params.toString();
                     }, 1500);
                 } else {
                     feedback.style.display = 'block';
