@@ -1,42 +1,65 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marcas e Fabricantes</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
+
 <body style="display: flex; flex-direction: column; min-height: 100vh; margin: 0;">
 
     <div class="card" style="background-color: #082C38; border-radius: 0;">
         <h5 class="card-header" style="color: white; border-radius: 0;">Marcas e Fabricantes</h5>
     </div>
-    
+
     <div class="container" style="flex: 1;">
         <nav class="navbar bg-white">
             <form class="w-75 mx-auto" role="search" id="formBusca">
                 <div class="input-group">
-                    <span class="input-group-text" style="background-color: #FCD8B4; border-right: none;"><i class="bi bi-search"></i></span>
-                    <input class="form-control" style="background-color: #FCD8B4; border-left: none;" type="search" placeholder="Buscar nome do fabricante ou marca" aria-label="Pesquisar" id="inputBusca"/>
+                    <span class="input-group-text" style="background-color: #FCD8B4; border-right: none;"><i
+                            class="bi bi-search"></i></span>
+                    <input class="form-control" style="background-color: #FCD8B4; border-left: none;" type="search"
+                        placeholder="Buscar nome do fabricante ou marca" aria-label="Pesquisar" id="inputBusca" />
                 </div>
             </form>
         </nav>
-        
+
         <br>
-        
-        <table class="table table-hover" id="tabelaMarcasFabricantes">
-            <thead>
-                <tr>
-                <th scope="col">Fabricante</th>
-                <th scope="col">Marca</th>
-                <th scope="col">Logotipo</th>
-                </tr>
-            </thead>
-            <tbody id="tabelaBody">
-                <!-- Dados carregados via JavaScript -->
-            </tbody>
-        </table>
+
+        <div class="d-flex justify-content-between mb-2">
+            <div>
+                <button class="btn btn-sm btn-primary me-2" style="background-color: #082C38; border-color: #082C38;">Nova marca</button>
+                <button class="btn btn-sm btn-outline-secondary me-2" onclick="window.location.href='editar_marca.html'">Editar marca</button>
+                <button class="btn btn-sm btn-outline-danger">Desativar marca</button>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-primary me-2" style="background-color: #082C38; border-color: #082C38;">Novo fabricante</button>
+                <button class="btn btn-sm btn-outline-secondary me-2" onclick="window.location.href='editar_fabricante.html'">Editar fabricante</button>
+                <button class="btn btn-sm btn-outline-danger">Desativar fabricante</button>
+            </div>
+        </div>
+
+        <div class="border rounded-4 overflow-hidden shadow-sm">
+            <table class="table table-hover table-striped mb-0" id="tabelaMarcasFabricantes">
+                <thead>
+                    <tr>
+                        <th scope="col" class="text-center"
+                            style="background-color: #082C38; color: white; border-bottom: none;"></th>
+                        <th scope="col" class="text-center"
+                            style="background-color: #082C38; color: white; border-bottom: none;">Marca</th>
+                        <th scope="col" class="text-center"
+                            style="background-color: #082C38; color: white; border-bottom: none;">Fabricante</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaBody">
+                    <!-- Dados carregados via JavaScript -->
+                </tbody>
+            </table>
+        </div>
 
         <div id="mensagemVazia" class="text-center text-muted py-4" style="display: none;">
             Nenhuma marca ou fabricante ativo encontrado.
@@ -46,7 +69,9 @@
     <footer style="background-color: #082C38; color: white; border-radius: 0; min-height: 2rem;">
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
 
     <script>
         let dadosCompletos = []; // armazena todos os dados para filtro local
@@ -103,53 +128,30 @@
 
             mensagemVazia.style.display = 'none';
 
-            // Agrupa marcas por fabricante (mantendo a ordem de aparição)
-            const agrupado = [];
-            const mapaGrupos = {};
+            let html = '';
 
             for (let i = 0; i < dados.length; i++) {
                 const item = dados[i];
-                if (!mapaGrupos[item.nome_fabricante]) {
-                    mapaGrupos[item.nome_fabricante] = { nome_fabricante: item.nome_fabricante, marcas: [] };
-                    agrupado.push(mapaGrupos[item.nome_fabricante]);
+
+                html += '<tr>';
+
+                if (item.logotipo_marca) {
+                    html += '<td class="align-middle text-center"><img src="' + item.logotipo_marca + '" alt="Logo ' + item.nome_marca + '" style="max-height: 40px; max-width: 80px; object-fit: contain;"></td>';
+                } else {
+                    html += '<td class="align-middle text-center"><span class="text-muted">—</span></td>';
                 }
-                mapaGrupos[item.nome_fabricante].marcas.push(item);
-            }
 
-            let html = '';
+                html += '<td class="align-middle text-center"><strong>' + item.nome_marca + '</strong></td>';
 
-            for (let g = 0; g < agrupado.length; g++) {
-                const grupo = agrupado[g];
-                const totalMarcas = grupo.marcas.length;
-
-                for (let j = 0; j < totalMarcas; j++) {
-                    const marca = grupo.marcas[j];
-
-                    // Na primeira marca do grupo, adiciona classe separadora e Fabricante com rowspan
-                    if (j === 0) {
-                        html += '<tr>';
-                        html += '<td rowspan="' + totalMarcas + '" class="align-middle">' + marca.nome_fabricante + '</td>';
-                    } else {
-                        html += '<tr>';
-                    }
-
-                    html += '<td>' + marca.nome_marca + '</td>';
-
-                    if (marca.logotipo_marca) {
-                        html += '<td><img src="' + marca.logotipo_marca + '" alt="Logo ' + marca.nome_marca + '" style="max-height: 40px; max-width: 80px; object-fit: contain;"></td>';
-                    } else {
-                        html += '<td><span class="text-muted">—</span></td>';
-                    }
-
-                    html += '</tr>';
-                }
+                html += '<td class="align-middle text-center">' + item.nome_fabricante + '</td>';
+                html += '</tr>';
             }
 
             tbody.innerHTML = html;
         }
 
         // Busca/filtro local
-        document.getElementById('formBusca').addEventListener('submit', function(e) {
+        document.getElementById('formBusca').addEventListener('submit', function (e) {
             e.preventDefault();
             filtrarDados();
         });
@@ -178,4 +180,5 @@
     </script>
 
 </body>
+
 </html>
