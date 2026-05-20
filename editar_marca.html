@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Marca</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">  
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh; margin: 0;">
+    <div class="card" style="background-color: #082C38; border-radius: 0;">
+        <h5 class="card-header" style="color: white; border-radius: 0;">Editar Marca</h5>
+    </div>
+
+    <div class="container mt-4" style="flex: 1;">
+        <form id="formEditarMarca">
+            <div class="mb-3">
+                <label for="selectFabricante" class="form-label">Selecionar Fabricante</label>
+                <select class="form-select" id="selectFabricante" required>
+                    <option value="" selected disabled>Escolha um fabricante...</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="selectMarca" class="form-label">Selecionar Marca</label>
+                <select class="form-select" id="selectMarca" required disabled>
+                    <option value="" selected disabled>Primeiro escolha um fabricante...</option>
+                </select>
+            </div>
+            
+            <div id="formCampos" style="display: none;">
+                <div class="row mb-3">
+                    <label for="inputNome" class="col-sm-2 col-form-label">Nome</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="inputNome" placeholder="" required>
+                        <div class="invalid-feedback">Informe o nome da marca.</div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="inputLogotipo" class="form-label">Logotipo (URL da imagem)</label>
+                    <input class="form-control" type="url" id="inputLogotipo" placeholder="https://exemplo.com/logo.png" required>
+                    <div class="invalid-feedback">Informe uma URL válida para o logotipo.</div>
+                    <div id="previewContainer" style="
+                        width: 200px;
+                        height: 120px;
+                        border: 2px dashed #082C38;
+                        border-radius: 8px;
+                        margin-top: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        overflow: hidden;
+                        background-color: #f8f9fa;
+                    ">
+                        <span id="previewPlaceholder" style="color: #6c757d; font-size: 0.85rem;">Pré-visualização</span>
+                        <img id="previewImg" src="" alt="Pré-visualização" style="width: 100%; height: 100%; object-fit: contain; display: none;">
+                    </div>
+                </div>
+                
+
+
+                <!-- Mensagem de feedback -->
+                <div id="mensagemFeedback" class="mb-3" style="display: none;"></div>
+
+                <hr>
+                
+                <div class="col-12">
+                    <button class="btn btn-primary" type="submit" id="btnSalvar"
+                        style="background-color: #082C38; border: none; box-shadow: none;">Salvar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <footer style="background-color: #082C38; color: white; border-radius: 0; min-height: 2rem;">
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script>
+        let todasMarcas = [];
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Carrega fabricantes
+                const resFabricantes = await fetch('/api/fabricantes');
+                if (resFabricantes.ok) {
+                    const fabricantes = await resFabricantes.json();
+                    const selectFabricante = document.getElementById('selectFabricante');
+                    for (let i = 0; i < fabricantes.length; i++) {
+                        const fab = fabricantes[i];
+                        const option = document.createElement('option');
+                        option.value = fab.idFabricante;
+                        option.textContent = fab.nome_fabricante;
+                        selectFabricante.appendChild(option);
+                    }
+                }
+
+                // Carrega todas as marcas para uso local
+                const resMarcas = await fetch('/api/marcas');
+                if (resMarcas.ok) {
+                    todasMarcas = await resMarcas.json();
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const paramFabricanteId = urlParams.get('fabricanteId');
+                
+                if (paramFabricanteId) {
+                    const selectFabricante = document.getElementById('selectFabricante');
+                    selectFabricante.value = paramFabricanteId;
+                    
+                    const event = new Event('change');
+                    selectFabricante.dispatchEvent(event);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        });
+
+        document.getElementById('selectFabricante').addEventListener('change', function() {
+            const selectMarca = document.getElementById('selectMarca');
+            const fabricanteId = this.value;
+            
+            selectMarca.innerHTML = '<option value="" selected disabled>Escolha uma marca...</option>';
+            
+            if (fabricanteId) {
+                // Filtra as marcas onde a fk_idFabricante é igual ao id do fabricante selecionado
+                for (let i = 0; i < todasMarcas.length; i++) {
+                    const marca = todasMarcas[i];
+                    if (marca.fk_idFabricante == fabricanteId) {
+                        const option = document.createElement('option');
+                        option.value = marca.idMarca;
+                        option.textContent = marca.nome_marca;
+                        selectMarca.appendChild(option);
+                    }
+                }
+                
+                selectMarca.disabled = false;
+            } else {
+                selectMarca.disabled = true;
+                selectMarca.innerHTML = '<option value="" selected disabled>Primeiro escolha um fabricante...</option>';
+            }
+            
+            document.getElementById('formCampos').style.display = 'none';
+        });
+
+        document.getElementById('selectMarca').addEventListener('change', function() {
+            const marcaId = this.value;
+            const formCampos = document.getElementById('formCampos');
+            
+            if (marcaId) {
+                let marca = null;
+                for (let i = 0; i < todasMarcas.length; i++) {
+                    if (todasMarcas[i].idMarca == marcaId) {
+                        marca = todasMarcas[i];
+                        break;
+                    }
+                }
+
+                if (marca) {
+                    document.getElementById('inputNome').value = marca.nome_marca;
+                    let logo = marca.logotipo_marca;
+                    if (!logo) {
+                        logo = '';
+                    }
+                    document.getElementById('inputLogotipo').value = logo;
+                    atualizarPreview();
+                    formCampos.style.display = 'block';
+                }
+            } else {
+                formCampos.style.display = 'none';
+            }
+        });
+
+        // Preview logic
+        const inputLogotipo = document.getElementById('inputLogotipo');
+        const previewImg = document.getElementById('previewImg');
+        const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+        function atualizarPreview() {
+            const url = inputLogotipo.value.trim();
+            if (url) {
+                previewImg.src = url;
+                previewImg.style.display = 'block';
+                previewPlaceholder.style.display = 'none';
+                previewImg.onerror = function () {
+                    previewImg.style.display = 'none';
+                    previewPlaceholder.style.display = '';
+                    previewPlaceholder.textContent = 'URL inválida';
+                };
+                previewImg.onload = function () {
+                    previewPlaceholder.textContent = 'Pré-visualização';
+                };
+            } else {
+                previewImg.style.display = 'none';
+                previewPlaceholder.style.display = '';
+                previewPlaceholder.textContent = 'Pré-visualização';
+            }
+        }
+
+        inputLogotipo.addEventListener('input', atualizarPreview);
+        inputLogotipo.addEventListener('paste', function () {
+            setTimeout(atualizarPreview, 100);
+        });
+
+        // Form submit
+        document.getElementById('formEditarMarca').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const marcaId = document.getElementById('selectMarca').value;
+            if (!marcaId) return;
+
+            const form = document.getElementById('formEditarMarca');
+            const feedback = document.getElementById('mensagemFeedback');
+            const btnSalvar = document.getElementById('btnSalvar');
+
+            form.classList.add('was-validated');
+            if (!form.checkValidity()) return;
+
+            let statusExistente = 'Ativo';
+            for (let i = 0; i < todasMarcas.length; i++) {
+                if (todasMarcas[i].idMarca == marcaId) {
+                    if (todasMarcas[i].status_marca) {
+                        statusExistente = todasMarcas[i].status_marca;
+                    }
+                    break;
+                }
+            }
+
+            let logotipoInput = document.getElementById('inputLogotipo').value;
+            if (logotipoInput === '') {
+                logotipoInput = null;
+            }
+
+            const dados = {
+                fk_idFabricante: document.getElementById('selectFabricante').value,
+                nome_marca: document.getElementById('inputNome').value,
+                logotipo_marca: logotipoInput,
+                status_marca: statusExistente
+            };
+
+            btnSalvar.disabled = true;
+            btnSalvar.textContent = 'Salvando...';
+
+            try {
+                const response = await fetch('/api/marcas/' + marcaId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+                
+                const resultado = await response.json();
+
+                if (response.ok) {
+                    let mensagemSucesso = 'Marca atualizada com sucesso!';
+                    if (resultado.message) {
+                        mensagemSucesso = resultado.message;
+                    }
+                    feedback.style.display = 'block';
+                    feedback.className = 'mb-3 alert alert-success';
+                    feedback.textContent = mensagemSucesso;
+                    
+                    // Update local data array
+                    let index = -1;
+                    for (let i = 0; i < todasMarcas.length; i++) {
+                        if (todasMarcas[i].idMarca == marcaId) {
+                            index = i;
+                            break;
+                        }
+                    }
+
+                    if (index !== -1) {
+                        todasMarcas[index].nome_marca = dados.nome_marca;
+                        todasMarcas[index].logotipo_marca = dados.logotipo_marca;
+                        
+                        const opt = document.querySelector('#selectMarca option[value="'+marcaId+'"]');
+                        if (opt) {
+                            opt.textContent = dados.nome_marca;
+                        }
+                    }
+
+                    setTimeout(function() {
+                        window.location.href = 'visualizar_marca_fabricante.html';
+                    }, 1500);
+                } else {
+                    let mensagemErro = 'Erro ao atualizar.';
+                    if (resultado.message) {
+                        mensagemErro = resultado.message;
+                    }
+                    feedback.style.display = 'block';
+                    feedback.className = 'mb-3 alert alert-danger';
+                    feedback.textContent = mensagemErro;
+                }
+            } catch (error) {
+                feedback.style.display = 'block';
+                feedback.className = 'mb-3 alert alert-danger';
+                feedback.textContent = 'Erro de conexão: ' + error.message;
+            } finally {
+                btnSalvar.disabled = false;
+                btnSalvar.textContent = 'Salvar Alterações';
+            }
+        });
+    </script>
+</body>
+</html>
