@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,6 +19,8 @@
   },
   "homepage": "https://github.com/gitIsaacVinicius/sistema-gestao-marcas-fabricantes#readme",
   "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "knex": "^3.2.10",
     "mysql2": "^3.22.3"
   }
