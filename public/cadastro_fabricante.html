@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Fabricante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh; margin: 0;">
+    
+    <div class="card" style="background-color: #082C38; border-radius: 0;">
+        <h5 class="card-header" style="color: white; border-radius: 0;">Cadastro de Fabricante</h5>
+    </div>
+
+
+    <div class="container" style="flex: 1;">
+        <br>
+
+        <b>Informações para identificação</b>
+
+        <br>
+        <br>
+        
+        <form id="formFabricante" class="needs-validation" novalidate>
+            <fieldset class="column mb-3">
+                <legend class="col-form-label col-sm-2 pt-0">Tipo de Pessoa</legend>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tipo_pessoa" id="inlineRadio1" value="PF" required>
+                    <label class="form-check-label" for="inlineRadio1">Pessoa Física</label>
+                </div>
+            
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tipo_pessoa" id="inlineRadio2" value="PJ" required>
+                    <label class="form-check-label" for="inlineRadio2">Pessoa Jurídica</label>
+                </div>
+                <div class="invalid-feedback" id="radioFeedback" style="display: none;">Selecione o tipo de pessoa.</div>
+            </fieldset>
+            
+            <div class="row mb-3">
+                <label for="inputDocFiscal" class="col-sm-2 col-form-label">Documento Fiscal</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" id="DocFiscal" placeholder="CPF ou CNPJ" required>
+                    <div class="invalid-feedback">Informe o CPF ou CNPJ.</div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <label for="inputNome" class="col-sm-2 col-form-label">Nome</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" id="nome_fabricante" placeholder="Nome completo ou razão social" required>
+                    <div class="invalid-feedback">Informe o nome.</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="inputTelefone" class="col-sm-2 col-form-label">Telefone</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" id="telefone_fabricante" placeholder="+55 |" required>
+                    <div class="invalid-feedback">Informe o telefone.</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="inputEmail" class="col-sm-2 col-form-label">E-mail</label>
+                <div class="col-sm-4">
+                    <input type="email" class="form-control" id="email_fabricante" placeholder="nome@exemplo.com" required>
+                    <div class="invalid-feedback">Informe um e-mail válido.</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="inputDadosCobranca" class="col-sm-2 col-form-label">Dados de Cobrança</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" id="cep_fabricante" placeholder="CEP" required>
+                    <div class="invalid-feedback">Informe o CEP.</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-2 offset-sm-2">
+                    <input type="text" class="form-control" id="estado_fabricante" placeholder="Estado (sigla)" required>
+                    <div class="invalid-feedback">Informe o estado.</div>
+                </div>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" id="cidade_fabricante" placeholder="Cidade" required>
+                    <div class="invalid-feedback">Informe a cidade.</div>
+                </div>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" id="bairro_fabricante" placeholder="Bairro" required>
+                    <div class="invalid-feedback">Informe o bairro.</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-4 offset-sm-2">
+                    <input type="text" class="form-control" id="inputLogradouro" placeholder="Logradouro" required>
+                    <div class="invalid-feedback">Informe o logradouro.</div>
+                </div>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control" id="inputNumero" placeholder="Número" required>
+                    <div class="invalid-feedback">Informe o número.</div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-6 offset-sm-2">
+                    <input type="text" class="form-control" id="inputComplemento" placeholder="Complemento (opcional)">
+                </div>
+            </div>
+
+            <hr>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="checkDefault" required>
+                <label class="form-check-label" for="checkDefault">
+                    Eu li e concordo com os Termos de Serviços, Políticas de Privacidade
+                </label>
+                <div class="invalid-feedback">Você deve concordar antes de enviar.</div>
+            </div>
+
+            <br>
+
+            <!-- Mensagem de feedback -->
+            <div id="mensagemFeedback" class="mb-3" style="display: none;"></div>
+
+            <div class="col-12 mb-5">
+                <button class="btn btn-primary" type="submit" id="btnEnviar" style="background-color: #082C38; color: white; border: none; box-shadow: none;">Enviar</button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <footer style="background-color: #082C38; color: white; border-radius: 0; min-height: 2rem;">
+    </footer>
+    
+    <script>
+        // Esconde a mensagem de validação ao selecionar o tipo de pessoa
+        const radios = document.querySelectorAll('input[name="tipo_pessoa"]');
+        for (let i = 0; i < radios.length; i++) {
+            radios[i].addEventListener('change', function() {
+                document.getElementById('radioFeedback').style.display = 'none';
+            });
+        }
+
+        document.getElementById('formFabricante').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = document.getElementById('formFabricante');
+            const feedback = document.getElementById('mensagemFeedback');
+            const btnEnviar = document.getElementById('btnEnviar');
+
+            // Ativa a validação visual do Bootstrap
+            form.classList.add('was-validated');
+
+            // Validação manual do radio button
+            const radioFeedback = document.getElementById('radioFeedback');
+            const tipoPessoaSelecionado = document.querySelector('input[name="tipo_pessoa"]:checked');
+            if (!tipoPessoaSelecionado) {
+                radioFeedback.style.display = 'block';
+            } else {
+                radioFeedback.style.display = 'none';
+            }
+
+            // Se o formulário não for válido, para aqui
+            if (!form.checkValidity()) {
+                return;
+            }
+
+            const tipoPessoaRadio = document.querySelector('input[name="tipo_pessoa"]:checked');
+
+            const dados = {
+                tipo_pessoa: tipoPessoaRadio.value,
+                documento_fiscal: document.getElementById('DocFiscal').value,
+                nome_fabricante: document.getElementById('nome_fabricante').value,
+                email_fabricante: document.getElementById('email_fabricante').value,
+                telefone_fabricante: document.getElementById('telefone_fabricante').value,
+                cep: document.getElementById('cep_fabricante').value,
+                estado: document.getElementById('estado_fabricante').value,
+                cidade: document.getElementById('cidade_fabricante').value,
+                bairro: document.getElementById('bairro_fabricante').value,
+                logradouro: document.getElementById('inputLogradouro').value,
+                numero: document.getElementById('inputNumero').value,
+                complemento: document.getElementById('inputComplemento').value
+            };
+
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = 'Enviando...';
+
+            try {
+                const response = await fetch('/api/fabricantes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                const resultado = await response.json();
+
+                if (response.ok) {
+                    feedback.style.display = 'block';
+                    feedback.className = 'mb-3 alert alert-success';
+                    feedback.textContent = resultado.message + ' Redirecionando para cadastro de marca...';
+                    form.reset();
+                    form.classList.remove('was-validated');
+
+                    // Redireciona para cadastro de marca com o ID do fabricante recém-cadastrado
+                    setTimeout(() => {
+                        const params = new URLSearchParams({
+                            fabricanteId: resultado.id,
+                            fabricanteNome: resultado.nome_fabricante
+                        });
+                        window.location.href = 'cadastro_marca.html?' + params.toString();
+                    }, 1500);
+                } else {
+                    feedback.style.display = 'block';
+                    feedback.className = 'mb-3 alert alert-danger';
+                    feedback.textContent = resultado.message || 'Erro ao cadastrar.';
+                }
+            } catch (error) {
+                feedback.style.display = 'block';
+                feedback.className = 'mb-3 alert alert-danger';
+                feedback.textContent = 'Erro de conexão com o servidor. Verifique se o servidor está rodando.';
+                console.error('Erro:', error);
+            } finally {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Enviar';
+            }
+        });
+    </script>
+
+</body>
+</html>

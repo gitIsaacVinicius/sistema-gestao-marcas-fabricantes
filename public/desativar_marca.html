@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desativar Marca</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+
+<body style="display: flex; flex-direction: column; min-height: 100vh; margin: 0;">
+
+    <div class="card" style="background-color: #082C38; border-radius: 0;">
+        <h5 class="card-header" style="color: white; border-radius: 0;">Desativar Marca</h5>
+    </div>
+
+    <div class="container mt-4" style="flex: 1;">
+        <div class="alert alert-warning" role="alert">
+            <strong>Atenção:</strong> Ao desativar esta marca, ela não estará mais disponível no sistema.
+        </div>
+
+        <form id="formDesativarMarca">
+            <div class="mb-3">
+                <label for="selectFabricante" class="form-label">Selecionar Fabricante</label>
+                <select class="form-select" id="selectFabricante" required>
+                    <option value="" selected disabled>Escolha um fabricante...</option>
+                </select>
+                <div class="invalid-feedback">Por favor, selecione um fabricante.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="selectMarca" class="form-label">Selecionar Marca para Desativar</label>
+                <select class="form-select" id="selectMarca" required disabled>
+                    <option value="" selected disabled>Primeiro escolha um fabricante...</option>
+                </select>
+                <div class="invalid-feedback">Por favor, selecione uma marca.</div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='visualizar_marca_fabricante.html'">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-danger" id="btnDesativar">
+                    Avançar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    
+    <div class="modal fade" id="confirmacaoModal" tabindex="-1" aria-labelledby="confirmacaoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmacaoModalLabel">Atenção</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Confirmo que desejo desativar esta marca
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmarDesativar">Desativar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background-color: #082C38; color: white; border-radius: 0; min-height: 2rem;">
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+    <script>
+        let todasMarcas = [];
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                // Carregar fabricantes
+                const resFabricantes = await fetch('/api/fabricantes');
+                if (resFabricantes.ok) {
+                    const fabricantes = await resFabricantes.json();
+                    const selectFabricante = document.getElementById('selectFabricante');
+                    for (let i = 0; i < fabricantes.length; i++) {
+                        const fab = fabricantes[i];
+                        const option = document.createElement('option');
+                        option.value = fab.idFabricante;
+                        option.textContent = fab.nome_fabricante;
+                        selectFabricante.appendChild(option);
+                    }
+                }
+
+                // Carregar marcas
+                const resMarcas = await fetch('/api/marcas');
+                if (resMarcas.ok) {
+                    todasMarcas = await resMarcas.json();
+                }
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+
+            let confirmacaoModal;
+
+            document.getElementById('selectFabricante').addEventListener('change', function() {
+                const selectMarca = document.getElementById('selectMarca');
+                const fabricanteId = this.value;
+                
+                selectMarca.innerHTML = '<option value="" selected disabled>Escolha uma marca...</option>';
+                
+                if (fabricanteId) {
+                    let hasMarcas = false;
+                    for (let i = 0; i < todasMarcas.length; i++) {
+                        const marca = todasMarcas[i];
+                        if (marca.fk_idFabricante == fabricanteId) {
+                            const option = document.createElement('option');
+                            option.value = marca.idMarca;
+                            option.textContent = marca.nome_marca;
+                            selectMarca.appendChild(option);
+                            hasMarcas = true;
+                        }
+                    }
+                    
+                    if (hasMarcas) {
+                        selectMarca.disabled = false;
+                    } else {
+                        selectMarca.disabled = true;
+                        selectMarca.innerHTML = '<option value="" selected disabled>Nenhuma marca encontrada para este fabricante...</option>';
+                    }
+                } else {
+                    selectMarca.disabled = true;
+                    selectMarca.innerHTML = '<option value="" selected disabled>Primeiro escolha um fabricante...</option>';
+                }
+            });
+
+            document.getElementById('formDesativarMarca').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const selectMarca = document.getElementById('selectMarca');
+
+                if (!selectMarca.value) {
+                    alert('Por favor, selecione uma marca.');
+                    return;
+                }
+
+                if (!confirmacaoModal) {
+                    confirmacaoModal = new bootstrap.Modal(document.getElementById('confirmacaoModal'));
+                }
+                confirmacaoModal.show();
+            });
+
+            document.getElementById('btnConfirmarDesativar').addEventListener('click', async function () {
+                const selectMarca = document.getElementById('selectMarca');
+                const marcaId = parseInt(selectMarca.value);
+                const btnConfirmarDesativar = document.getElementById('btnConfirmarDesativar');
+                const originalText = btnConfirmarDesativar.innerHTML;
+
+                btnConfirmarDesativar.disabled = true;
+                btnConfirmarDesativar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Desativando...';
+
+                try {
+                    let marcaSelecionada = null;
+                    for (let i = 0; i < todasMarcas.length; i++) {
+                        if (todasMarcas[i].idMarca == marcaId) {
+                            marcaSelecionada = todasMarcas[i];
+                            break;
+                        }
+                    }
+
+                    if (!marcaSelecionada) {
+                        throw new Error('Marca não encontrada localmente.');
+                    }
+
+                    const resUpdateMarca = await fetch(`/api/marcas/${marcaId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            fk_idFabricante: marcaSelecionada.fk_idFabricante,
+                            nome_marca: marcaSelecionada.nome_marca,
+                            logotipo_marca: marcaSelecionada.logotipo_marca,
+                            status_marca: 0
+                        })
+                    });
+
+                    if (resUpdateMarca.ok) {
+                        if (confirmacaoModal) confirmacaoModal.hide();
+                        alert('Marca desativada com sucesso!');
+                        window.location.href = 'visualizar_marca_fabricante.html';
+                    } else {
+                        throw new Error('Erro ao desativar marca');
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro: ' + error.message);
+                } finally {
+                    btnConfirmarDesativar.disabled = false;
+                    btnConfirmarDesativar.innerHTML = originalText;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Fabricante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">  
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh; margin: 0;">
+    <div class="card" style="background-color: #082C38; border-radius: 0;">
+        <h5 class="card-header" style="color: white; border-radius: 0;">Editar Fabricante</h5>
+    </div>
+
+    <div class="container mt-4" style="flex: 1;">
+        <form id="formEditarFabricante" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="selectFabricante" class="form-label">Selecionar Fabricante</label>
+                <select class="form-select" id="selectFabricante" required>
+                    <option value="" selected disabled>Escolha um fabricante...</option>
+                </select>
+            </div>
+            
+            <div id="formCampos" style="display: none;">
+                <fieldset class="column mb-3">
+                    <legend class="col-form-label col-sm-2 pt-0">Tipo de Pessoa</legend>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo_pessoa" id="inlineRadio1" value="PF" required>
+                        <label class="form-check-label" for="inlineRadio1">Pessoa Física</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipo_pessoa" id="inlineRadio2" value="PJ" required>
+                        <label class="form-check-label" for="inlineRadio2">Pessoa Jurídica</label>
+                    </div>
+                    <div class="invalid-feedback" id="radioFeedback" style="display: none;">Selecione o tipo de pessoa.</div>
+                </fieldset>
+                
+                <div class="row mb-3">
+                    <label for="DocFiscal" class="col-sm-2 col-form-label">Documento Fiscal</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="DocFiscal" placeholder="CPF ou CNPJ" required>
+                        <div class="invalid-feedback">Informe o CPF ou CNPJ.</div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <label for="nome_fabricante" class="col-sm-2 col-form-label">Nome</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="nome_fabricante" placeholder="Nome completo ou razão social" required>
+                        <div class="invalid-feedback">Informe o nome.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="telefone_fabricante" class="col-sm-2 col-form-label">Telefone</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="telefone_fabricante" placeholder="+55 |" required>
+                        <div class="invalid-feedback">Informe o telefone.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="email_fabricante" class="col-sm-2 col-form-label">E-mail</label>
+                    <div class="col-sm-4">
+                        <input type="email" class="form-control" id="email_fabricante" placeholder="nome@exemplo.com" required>
+                        <div class="invalid-feedback">Informe um e-mail válido.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="cep_fabricante" class="col-sm-2 col-form-label">Dados de Cobrança</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="cep_fabricante" placeholder="CEP" required>
+                        <div class="invalid-feedback">Informe o CEP.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-2 offset-sm-2">
+                        <input type="text" class="form-control" id="estado_fabricante" placeholder="Estado (sigla)" required>
+                        <div class="invalid-feedback">Informe o estado.</div>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="cidade_fabricante" placeholder="Cidade" required>
+                        <div class="invalid-feedback">Informe a cidade.</div>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="bairro_fabricante" placeholder="Bairro" required>
+                        <div class="invalid-feedback">Informe o bairro.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4 offset-sm-2">
+                        <input type="text" class="form-control" id="inputLogradouro" placeholder="Logradouro" required>
+                        <div class="invalid-feedback">Informe o logradouro.</div>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="inputNumero" placeholder="Número" required>
+                        <div class="invalid-feedback">Informe o número.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-6 offset-sm-2">
+                        <input type="text" class="form-control" id="inputComplemento" placeholder="Complemento (opcional)">
+                    </div>
+                </div>
+
+                <!-- Mensagem de feedback -->
+                <div id="mensagemFeedback" class="mb-3" style="display: none;"></div>
+
+                <hr>
+
+                <div class="col-12 mb-5">
+                    <button class="btn btn-primary" type="submit" id="btnSalvar" style="background-color: #082C38; border: none; box-shadow: none;">Salvar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal de confirmação para editar marca -->
+    <div class="modal fade" id="modalEditarMarca" tabindex="-1" aria-labelledby="modalEditarMarcaLabel" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #082C38; color: white;">
+                    <h5 class="modal-title" id="modalEditarMarcaLabel">Fabricante atualizado!</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Deseja editar uma marca vinculada a este fabricante?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnNaoEditarMarca">Não</button>
+                    <button type="button" class="btn btn-primary" id="btnSimEditarMarca"
+                        style="background-color: #082C38; border: none;">Sim</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background-color: #082C38; color: white; border-radius: 0; min-height: 2rem;">
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script>
+        let todosFabricantes = [];
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const resFabricantes = await fetch('/api/fabricantes');
+                if (resFabricantes.ok) {
+                    todosFabricantes = await resFabricantes.json();
+                    const selectFabricante = document.getElementById('selectFabricante');
+                    
+                    for (let i = 0; i < todosFabricantes.length; i++) {
+                        const fab = todosFabricantes[i];
+                        const option = document.createElement('option');
+                        option.value = fab.idFabricante;
+                        option.textContent = fab.nome_fabricante;
+                        selectFabricante.appendChild(option);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao buscar dados:', error);
+            }
+        });
+
+        document.getElementById('selectFabricante').addEventListener('change', function() {
+            const fabricanteId = this.value;
+            const formCampos = document.getElementById('formCampos');
+            
+            if (fabricanteId) {
+                let fab = null;
+                for (let i = 0; i < todosFabricantes.length; i++) {
+                    if (todosFabricantes[i].idFabricante == fabricanteId) {
+                        fab = todosFabricantes[i];
+                        break;
+                    }
+                }
+
+                if (fab) {
+                    if (fab.tipo_pessoa === 'PF') {
+                        document.getElementById('inlineRadio1').checked = true;
+                    } else if (fab.tipo_pessoa === 'PJ') {
+                        document.getElementById('inlineRadio2').checked = true;
+                    }
+
+                    document.getElementById('DocFiscal').value = fab.documento_fiscal;
+                    if (!fab.documento_fiscal) document.getElementById('DocFiscal').value = '';
+
+                    document.getElementById('nome_fabricante').value = fab.nome_fabricante;
+                    if (!fab.nome_fabricante) document.getElementById('nome_fabricante').value = '';
+
+                    document.getElementById('telefone_fabricante').value = fab.telefone_fabricante;
+                    if (!fab.telefone_fabricante) document.getElementById('telefone_fabricante').value = '';
+
+                    document.getElementById('email_fabricante').value = fab.email_fabricante;
+                    if (!fab.email_fabricante) document.getElementById('email_fabricante').value = '';
+
+                    document.getElementById('cep_fabricante').value = fab.cep;
+                    if (!fab.cep) document.getElementById('cep_fabricante').value = '';
+
+                    document.getElementById('estado_fabricante').value = fab.estado;
+                    if (!fab.estado) document.getElementById('estado_fabricante').value = '';
+
+                    document.getElementById('cidade_fabricante').value = fab.cidade;
+                    if (!fab.cidade) document.getElementById('cidade_fabricante').value = '';
+
+                    document.getElementById('bairro_fabricante').value = fab.bairro;
+                    if (!fab.bairro) document.getElementById('bairro_fabricante').value = '';
+
+                    document.getElementById('inputLogradouro').value = fab.logradouro;
+                    if (!fab.logradouro) document.getElementById('inputLogradouro').value = '';
+
+                    document.getElementById('inputNumero').value = fab.numero;
+                    if (!fab.numero) document.getElementById('inputNumero').value = '';
+
+                    document.getElementById('inputComplemento').value = fab.complemento;
+                    if (!fab.complemento) document.getElementById('inputComplemento').value = '';
+
+                    formCampos.style.display = 'block';
+                }
+            } else {
+                formCampos.style.display = 'none';
+            }
+        });
+
+        const radios = document.querySelectorAll('input[name="tipo_pessoa"]');
+        for (let i = 0; i < radios.length; i++) {
+            radios[i].addEventListener('change', function() {
+                document.getElementById('radioFeedback').style.display = 'none';
+            });
+        }
+
+        document.getElementById('formEditarFabricante').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fabricanteId = document.getElementById('selectFabricante').value;
+            if (!fabricanteId) return;
+
+            const form = document.getElementById('formEditarFabricante');
+            const feedback = document.getElementById('mensagemFeedback');
+            const btnSalvar = document.getElementById('btnSalvar');
+
+            form.classList.add('was-validated');
+
+            const radioFeedback = document.getElementById('radioFeedback');
+            const tipoPessoaSelecionado = document.querySelector('input[name="tipo_pessoa"]:checked');
+            if (!tipoPessoaSelecionado) {
+                radioFeedback.style.display = 'block';
+            } else {
+                radioFeedback.style.display = 'none';
+            }
+
+            if (!form.checkValidity() || !tipoPessoaSelecionado) {
+                return;
+            }
+
+            const dados = {
+                tipo_pessoa: tipoPessoaSelecionado.value,
+                documento_fiscal: document.getElementById('DocFiscal').value,
+                nome_fabricante: document.getElementById('nome_fabricante').value,
+                email_fabricante: document.getElementById('email_fabricante').value,
+                telefone_fabricante: document.getElementById('telefone_fabricante').value,
+                cep: document.getElementById('cep_fabricante').value,
+                estado: document.getElementById('estado_fabricante').value,
+                cidade: document.getElementById('cidade_fabricante').value,
+                bairro: document.getElementById('bairro_fabricante').value,
+                logradouro: document.getElementById('inputLogradouro').value,
+                numero: document.getElementById('inputNumero').value,
+                complemento: document.getElementById('inputComplemento').value
+            };
+
+            btnSalvar.disabled = true;
+            btnSalvar.textContent = 'Salvando...';
+
+            try {
+                const response = await fetch('/api/fabricantes/' + fabricanteId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+
+                const resultado = await response.json();
+
+                if (response.ok) {
+                    let mensagemSucesso = 'Fabricante atualizado com sucesso!';
+                    if (resultado.message) {
+                        mensagemSucesso = resultado.message;
+                    }
+                    feedback.style.display = 'block';
+                    feedback.className = 'mb-3 alert alert-success';
+                    feedback.textContent = mensagemSucesso;
+
+                    let index = -1;
+                    for (let i = 0; i < todosFabricantes.length; i++) {
+                        if (todosFabricantes[i].idFabricante == fabricanteId) {
+                            index = i;
+                            break;
+                        }
+                    }
+
+                    if (index !== -1) {
+                        todosFabricantes[index].nome_fabricante = dados.nome_fabricante;
+                        todosFabricantes[index].tipo_pessoa = dados.tipo_pessoa;
+                        todosFabricantes[index].documento_fiscal = dados.documento_fiscal;
+                        todosFabricantes[index].email_fabricante = dados.email_fabricante;
+                        todosFabricantes[index].telefone_fabricante = dados.telefone_fabricante;
+                        todosFabricantes[index].cep = dados.cep;
+                        todosFabricantes[index].estado = dados.estado;
+                        todosFabricantes[index].cidade = dados.cidade;
+                        todosFabricantes[index].bairro = dados.bairro;
+                        todosFabricantes[index].logradouro = dados.logradouro;
+                        todosFabricantes[index].numero = dados.numero;
+                        todosFabricantes[index].complemento = dados.complemento;
+
+                        const opt = document.querySelector('#selectFabricante option[value="' + fabricanteId + '"]');
+                        if (opt) {
+                            opt.textContent = dados.nome_fabricante;
+                        }
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('modalEditarMarca'));
+                    modal.show();
+
+                    document.getElementById('btnSimEditarMarca').onclick = function() {
+                        window.location.href = 'editar_marca.html?fabricanteId=' + fabricanteId;
+                    };
+
+                    document.getElementById('btnNaoEditarMarca').onclick = function() {
+                        window.location.href = 'visualizar_marca_fabricante.html';
+                    };
+                } else {
+                    let mensagemErro = 'Erro ao atualizar.';
+                    if (resultado.message) {
+                        mensagemErro = resultado.message;
+                    }
+                    feedback.style.display = 'block';
+                    feedback.className = 'mb-3 alert alert-danger';
+                    feedback.textContent = mensagemErro;
+                }
+            } catch (error) {
+                feedback.style.display = 'block';
+                feedback.className = 'mb-3 alert alert-danger';
+                feedback.textContent = 'Erro de conexão com o servidor.';
+            } finally {
+                btnSalvar.disabled = false;
+                btnSalvar.textContent = 'Salvar Alterações';
+            }
+        });
+    </script>
+</body>
+</html>
