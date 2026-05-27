@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
 const cors = require('cors')
-const crud = require('./crud')
+const crud = require('./src/models/crud')
 
 const app = express()
 const PORT = 3000
@@ -12,7 +12,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Servir arquivos estáticos (HTML, CSS, JS do frontend)
-app.use(express.static(path.join(__dirname)))
+app.use(express.static(path.join(__dirname, 'public')))
 
 // ========================
 // ROTAS DE FABRICANTE
