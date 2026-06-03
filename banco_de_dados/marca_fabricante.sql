@@ -14,7 +14,7 @@ cidade varchar(30) not null,
 bairro varchar(50) not null,
 logradouro varchar(100) not null,
 numero varchar(10) not null,
-complemento varchar(10),
+complemento varchar(50),
 status_fabricante varchar(20) not null default 'Ativo',
 primary key (idFabricante)
 )
