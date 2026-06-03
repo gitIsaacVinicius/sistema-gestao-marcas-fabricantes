@@ -74,40 +74,56 @@
         crossorigin="anonymous"></script>
 
     <script>
-        let dadosCompletos = []; // armazena todos os dados para filtro local
+        // Array global usado para armazenar a junção das informações (marcas vinculadas aos fabricantes).
+        // Ele funciona como um "cache" para que a barra de pesquisa possa filtrar os resultados instantaneamente sem precisar consultar 
+        // o backend toda vez.
+        let dadosCompletos = []; 
 
-        // Carrega os dados ao abrir a página
+
+        // CARREGAMENTO DOS DADOS
+        // Dispara a função carregarDados assim que a página terminar de carregar o HTML
         document.addEventListener('DOMContentLoaded', carregarDados);
 
         async function carregarDados() {
             try {
-                // Chama as duas rotas existentes em paralelo
+                // Chama as duas rotas existentes na API em paralelo para ganhar tempo de carregamento
                 const resFabricantes = await fetch('/api/fabricantes');
                 const resMarcas = await fetch('/api/marcas');
 
+                // Se houver algum erro de rede ou o servidor retornar status 500/404, joga um erro para cair no catch
                 if (!resFabricantes.ok || !resMarcas.ok) throw new Error('Erro na requisição');
 
+                // Extrai o conteúdo em formato JSON (arrays de objetos)
                 const fabricantes = await resFabricantes.json();
                 const marcas = await resMarcas.json();
 
-                // Cria um mapa de fabricantes por ID para associar com as marcas
+
+                // ASSOCIAÇÃO ENTRE MARCAS E FABRICANTES
+                // Cria um "dicionário" (mapa) onde a chave é o ID do fabricante e o valor é o seu Nome.
+                // Exemplo: { 1: "Coca-Cola" }
+                // Torna a busca pelo nome do fabricante mais rápida do que fazer um loop na hora de montar a tabela.
                 const mapaFabricantes = {};
                 for (let f = 0; f < fabricantes.length; f++) {
                     mapaFabricantes[fabricantes[f].idFabricante] = fabricantes[f].nome_fabricante;
                 }
 
-                // Combina marcas com o nome do fabricante correspondente
+                // Esvazia o array para evitar duplicações caso a função seja chamada novamente
                 dadosCompletos = [];
+                
+                // Percorre a lista de marcas e cria objetos unificados com o nome do fabricante
                 for (let m = 0; m < marcas.length; m++) {
                     dadosCompletos.push({
+                        // Pega o nome do dicionário usando a chave estrangeira (fk_idFabricante). Se não achar, avisa.
                         nome_fabricante: mapaFabricantes[marcas[m].fk_idFabricante] || 'Fabricante não encontrado',
                         nome_marca: marcas[m].nome_marca,
                         logotipo_marca: marcas[m].logotipo_marca
                     });
                 }
 
+                // Envia a lista processada para a função que vai desenhar o HTML na tela
                 renderizarTabela(dadosCompletos);
             } catch (error) {
+                // Tratamento caso falhe a conexão com a API
                 console.error('Erro ao carregar dados:', error);
                 document.getElementById('tabelaBody').innerHTML =
                     '<tr><td colspan="3" class="text-center text-danger">' +
@@ -116,65 +132,87 @@
             }
         }
 
+
+        // RENDERIZAÇÃO E MONTAGEM DA TABELA HTML
         function renderizarTabela(dados) {
-            const tbody = document.getElementById('tabelaBody');
+            const tbody = document.getElementById('tabelaBody'); // O "corpo" da tabela onde ficam as linhas (tr)
             const mensagemVazia = document.getElementById('mensagemVazia');
 
+            // Verifica se não há nenhum registro cadastrado ou filtrado e exibe uma mensagem amigável
             if (dados.length === 0) {
-                tbody.innerHTML = '';
+                tbody.innerHTML = ''; // Limpa qualquer vestígio de tabela
                 mensagemVazia.style.display = 'block';
-                return;
+                return; // Sai da função mais cedo, já que não há o que renderizar
             }
 
+            // Oculta a mensagem de "vazio" caso haja dados
             mensagemVazia.style.display = 'none';
 
-            let html = '';
+            let html = ''; // Variável que acumulará o código HTML de todas as linhas
 
+            // Cria uma linha <tr> para cada marca
             for (let i = 0; i < dados.length; i++) {
                 const item = dados[i];
 
                 html += '<tr>';
 
+                // Coluna 1: Logotipo (Imagem)
                 if (item.logotipo_marca) {
-                    html += '<td class="align-middle text-center"><img src="' + item.logotipo_marca + '" alt="Logo ' + item.nome_marca + '" style="max-height: 40px; max-width: 80px; object-fit: contain;"></td>';
+                    // Renderiza a imagem limitando o tamanho para não quebrar o layout da tabela (object-fit: contain)
+                    html += '<td class="align-middle text-center"><img src="' + item.logotipo_marca + '" alt="Logo ' + item.nome_marca 
+                        + '" style="max-height: 40px; max-width: 80px; object-fit: contain;"></td>';
                 } else {
+                    // Renderiza um traço neutro caso não haja logotipo
                     html += '<td class="align-middle text-center"><span class="text-muted">—</span></td>';
                 }
 
+                // Coluna 2: Nome da Marca
                 html += '<td class="align-middle text-center"><strong>' + item.nome_marca + '</strong></td>';
 
+                // Coluna 3: Nome do Fabricante
                 html += '<td class="align-middle text-center">' + item.nome_fabricante + '</td>';
+                
                 html += '</tr>';
             }
 
+            // Injeta o HTML gerado na página, substituindo o que havia antes
             tbody.innerHTML = html;
         }
 
-        // Busca/filtro local
+        // PESQUISA EM TEMPO REAL
+        // Evita que apertar "Enter" no formulário de busca recarregue a página
         document.getElementById('formBusca').addEventListener('submit', function (e) {
             e.preventDefault();
             filtrarDados();
         });
 
+        // Ouve cada letra digitada ou apagada no campo de busca para dar a sensação de busca instantânea (tempo real)
         document.getElementById('inputBusca').addEventListener('input', filtrarDados);
 
+        // Lógica de filtragem
         function filtrarDados() {
+            // Pega o texto digitado, remove espaços em branco das pontas (trim) e converte para letras minúsculas (toLowerCase)
             const termo = document.getElementById('inputBusca').value.toLowerCase().trim();
 
+            // Se a barra estiver vazia, renderiza a tabela inteira novamente
             if (!termo) {
                 renderizarTabela(dadosCompletos);
                 return;
             }
 
-            const filtrados = [];
+            const filtrados = []; // Array temporário para guardar só quem passou no filtro
+            
+            // Compara o termo digitado com o nome de todos os itens cadastrados
             for (let i = 0; i < dadosCompletos.length; i++) {
                 const item = dadosCompletos[i];
+                // Includes checa se a palavra (termo) existe em qualquer parte do nome. Ex: "coca" acha "Coca-cola"
                 if (item.nome_fabricante.toLowerCase().includes(termo) ||
                     item.nome_marca.toLowerCase().includes(termo)) {
                     filtrados.push(item);
                 }
             }
 
+            // Redesenha a tabela mostrando apenas o array filtrado
             renderizarTabela(filtrados);
         }
     </script>

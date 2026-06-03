@@ -76,15 +76,18 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script>
+        // Array global para armazenar todas as marcas e evitar consultas redundantes ao servidor.
         let todasMarcas = [];
 
+        // CARREGAMENTO DOS DADOS
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                // Carrega fabricantes
+                // Carrega todos os fabricantes do banco de dados
                 const resFabricantes = await fetch('/api/fabricantes');
                 if (resFabricantes.ok) {
                     const fabricantes = await resFabricantes.json();
                     const selectFabricante = document.getElementById('selectFabricante');
+                    // Popula o dropdown primário com os fabricantes encontrados
                     for (let i = 0; i < fabricantes.length; i++) {
                         const fab = fabricantes[i];
                         const option = document.createElement('option');
@@ -94,19 +97,23 @@
                     }
                 }
 
-                // Carrega todas as marcas para uso local
+                // Carrega todas as marcas para uso e filtragem local (evita chamadas repetidas)
                 const resMarcas = await fetch('/api/marcas');
                 if (resMarcas.ok) {
                     todasMarcas = await resMarcas.json();
                 }
 
+                // Verifica se a página foi acessada recebendo o ID do fabricante na URL 
+                // Exemplo: editar_marca.html?fabricanteId=5
                 const urlParams = new URLSearchParams(window.location.search);
                 const paramFabricanteId = urlParams.get('fabricanteId');
                 
+                // Se existir o parâmetro, pré-seleciona o fabricante no dropdown
                 if (paramFabricanteId) {
                     const selectFabricante = document.getElementById('selectFabricante');
                     selectFabricante.value = paramFabricanteId;
                     
+                    // Dispara manualmente o evento 'change' para acionar o carregamento do 2º dropdown (Marcas)
                     const event = new Event('change');
                     selectFabricante.dispatchEvent(event);
                 }
@@ -115,14 +122,18 @@
             }
         });
 
+
+        // LÓGICA DO DROPDOWN EM CASCATA (FABRICANTE -> MARCAS)
         document.getElementById('selectFabricante').addEventListener('change', function() {
             const selectMarca = document.getElementById('selectMarca');
             const fabricanteId = this.value;
             
+            // Reseta o dropdown de marcas sempre que o fabricante mudar
             selectMarca.innerHTML = '<option value="" selected disabled>Escolha uma marca...</option>';
             
             if (fabricanteId) {
-                // Filtra as marcas onde a fk_idFabricante é igual ao id do fabricante selecionado
+                // Filtra as marcas da memória onde a chave estrangeira (fk_idFabricante) 
+                // é igual ao id do fabricante recém selecionado
                 for (let i = 0; i < todasMarcas.length; i++) {
                     const marca = todasMarcas[i];
                     if (marca.fk_idFabricante == fabricanteId) {
@@ -133,20 +144,26 @@
                     }
                 }
                 
+                // Habilita o dropdown secundário
                 selectMarca.disabled = false;
             } else {
+                // Bloqueia o dropdown se não houver um fabricante válido selecionado
                 selectMarca.disabled = true;
                 selectMarca.innerHTML = '<option value="" selected disabled>Primeiro escolha um fabricante...</option>';
             }
             
+            // Esconde os campos do formulário até que uma marca específica seja selecionada
             document.getElementById('formCampos').style.display = 'none';
         });
 
+        
+        // PREENCHIMENTO DO FORMULÁRIO COM DADOS DA MARCA
         document.getElementById('selectMarca').addEventListener('change', function() {
             const marcaId = this.value;
             const formCampos = document.getElementById('formCampos');
             
             if (marcaId) {
+                // Procura a marca específica no array global
                 let marca = null;
                 for (let i = 0; i < todasMarcas.length; i++) {
                     if (todasMarcas[i].idMarca == marcaId) {
@@ -155,6 +172,7 @@
                     }
                 }
 
+                // Preenche os campos da tela com os dados encontrados
                 if (marca) {
                     document.getElementById('inputNome').value = marca.nome_marca;
                     let logo = marca.logotipo_marca;
@@ -162,7 +180,11 @@
                         logo = '';
                     }
                     document.getElementById('inputLogotipo').value = logo;
+                    
+                    // Aciona a função que atualiza a imagem na tela
                     atualizarPreview();
+                    
+                    // Exibe o formulário de edição para o usuário
                     formCampos.style.display = 'block';
                 }
             } else {
@@ -170,41 +192,53 @@
             }
         });
 
-        // Preview logic
+        
+        // PRÉ-VISUALIZAÇÃO DA IMAGEM DO LOGOTIPO
         const inputLogotipo = document.getElementById('inputLogotipo');
         const previewImg = document.getElementById('previewImg');
         const previewPlaceholder = document.getElementById('previewPlaceholder');
 
+        // Função responsável por tentar carregar a imagem na div sempre que o usuário digitar ou colar uma URL
         function atualizarPreview() {
             const url = inputLogotipo.value.trim();
             if (url) {
                 previewImg.src = url;
                 previewImg.style.display = 'block';
                 previewPlaceholder.style.display = 'none';
+                
+                // Se o navegador não conseguir carregar a imagem (link quebrado, formato inválido)
                 previewImg.onerror = function () {
                     previewImg.style.display = 'none';
                     previewPlaceholder.style.display = '';
                     previewPlaceholder.textContent = 'URL inválida';
                 };
+                
+                // Se o carregamento for bem-sucedido
                 previewImg.onload = function () {
                     previewPlaceholder.textContent = 'Pré-visualização';
                 };
             } else {
+                // Comportamento padrão quando a caixa está vazia
                 previewImg.style.display = 'none';
                 previewPlaceholder.style.display = '';
                 previewPlaceholder.textContent = 'Pré-visualização';
             }
         }
 
+        // Adiciona ouvintes de eventos para que a pré-visualização atualize em tempo real
         inputLogotipo.addEventListener('input', atualizarPreview);
         inputLogotipo.addEventListener('paste', function () {
+            // Um pequeno delay ao colar para garantir que o valor do input já esteja disponível no DOM
             setTimeout(atualizarPreview, 100);
         });
 
-        // Form submit
+        
+        // SALVAR AS EDIÇÕES (COMUNICAÇÃO COM O BACKEND)
         document.getElementById('formEditarMarca').addEventListener('submit', async function(e) {
+            // Evita o recarregamento automático da tela
             e.preventDefault();
             
+            // Garante que uma marca está selecionada
             const marcaId = document.getElementById('selectMarca').value;
             if (!marcaId) return;
 
@@ -212,9 +246,11 @@
             const feedback = document.getElementById('mensagemFeedback');
             const btnSalvar = document.getElementById('btnSalvar');
 
+            // Aplica estilos visuais de validação do Bootstrap
             form.classList.add('was-validated');
             if (!form.checkValidity()) return;
 
+            // Busca e mantém o status atual da marca (não deve-se alterar para "Ativo" se ela estiver Inativa)
             let statusExistente = 'Ativo';
             for (let i = 0; i < todasMarcas.length; i++) {
                 if (todasMarcas[i].idMarca == marcaId) {
@@ -225,11 +261,13 @@
                 }
             }
 
+            // Tratamento do campo logotipo para evitar strings vazias
             let logotipoInput = document.getElementById('inputLogotipo').value;
             if (logotipoInput === '') {
                 logotipoInput = null;
             }
 
+            // Agrupa os novos dados a serem enviados
             const dados = {
                 fk_idFabricante: document.getElementById('selectFabricante').value,
                 nome_marca: document.getElementById('inputNome').value,
@@ -237,10 +275,12 @@
                 status_marca: statusExistente
             };
 
+            // Previne múltiplos cliques
             btnSalvar.disabled = true;
             btnSalvar.textContent = 'Salvando...';
 
             try {
+                // Envia a requisição de atualização via método PUT
                 const response = await fetch('/api/marcas/' + marcaId, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -249,6 +289,7 @@
                 
                 const resultado = await response.json();
 
+                // Se a atualização ocorreu com sucesso
                 if (response.ok) {
                     let mensagemSucesso = 'Marca atualizada com sucesso!';
                     if (resultado.message) {
@@ -258,7 +299,7 @@
                     feedback.className = 'mb-3 alert alert-success';
                     feedback.textContent = mensagemSucesso;
                     
-                    // Update local data array
+                    // Atualiza os dados locais (memória da página) para que a interface continue consistente
                     let index = -1;
                     for (let i = 0; i < todasMarcas.length; i++) {
                         if (todasMarcas[i].idMarca == marcaId) {
@@ -271,16 +312,19 @@
                         todasMarcas[index].nome_marca = dados.nome_marca;
                         todasMarcas[index].logotipo_marca = dados.logotipo_marca;
                         
+                        // Atualiza o texto do dropdown com o novo nome da marca, caso tenha sido editado
                         const opt = document.querySelector('#selectMarca option[value="'+marcaId+'"]');
                         if (opt) {
                             opt.textContent = dados.nome_marca;
                         }
                     }
 
+                    // Aguarda 1 segundo e meio e redireciona o usuário para a tela inicial
                     setTimeout(function() {
                         window.location.href = 'visualizar_marca_fabricante.html';
                     }, 1500);
                 } else {
+                    // Tratamento de falhas na validação do servidor (ex: nome já existe)
                     let mensagemErro = 'Erro ao atualizar.';
                     if (resultado.message) {
                         mensagemErro = resultado.message;
@@ -290,10 +334,12 @@
                     feedback.textContent = mensagemErro;
                 }
             } catch (error) {
+                // Tratamento de erro de rede/conexão
                 feedback.style.display = 'block';
                 feedback.className = 'mb-3 alert alert-danger';
                 feedback.textContent = 'Erro de conexão: ' + error.message;
             } finally {
+                // Restaura o botão ao estado original
                 btnSalvar.disabled = false;
                 btnSalvar.textContent = 'Salvar Alterações';
             }

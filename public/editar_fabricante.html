@@ -143,15 +143,22 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script>
+        // Array global para guardar todos os fabricantes e evitar novas chamadas à API desnecessariamente.
         let todosFabricantes = [];
 
+        // CARREGAMENTO DOS FABRICANTES
         document.addEventListener('DOMContentLoaded', async function() {
             try {
+                // Faz a requisição inicial para a API para buscar todos os fabricantes cadastrados.
                 const resFabricantes = await fetch('/api/fabricantes');
+                
+                // Se a resposta for bem-sucedida (status 200)
                 if (resFabricantes.ok) {
+                    // Salva os dados na variável global.
                     todosFabricantes = await resFabricantes.json();
                     const selectFabricante = document.getElementById('selectFabricante');
                     
+                    // Popula o menu de dropdown dinamicamente com as opções disponíveis.
                     for (let i = 0; i < todosFabricantes.length; i++) {
                         const fab = todosFabricantes[i];
                         const option = document.createElement('option');
@@ -161,16 +168,20 @@
                     }
                 }
             } catch (error) {
+                // Captura e loga falhas na requisição (como falta de conexão ou erro no servidor).
                 console.error('Erro ao buscar dados:', error);
             }
         });
 
+        // Quando o usuário seleciona um fabricante diferente no dropdown, essa função é acionada.
         document.getElementById('selectFabricante').addEventListener('change', function() {
-            const fabricanteId = this.value;
-            const formCampos = document.getElementById('formCampos');
+            const fabricanteId = this.value; // ID do fabricante selecionado.
+            const formCampos = document.getElementById('formCampos'); // Div que encapsula os campos do formulário.
             
+            // Verifica se de fato um ID válido foi selecionado
             if (fabricanteId) {
                 let fab = null;
+                // Procura o fabricante específico na nossa lista global
                 for (let i = 0; i < todosFabricantes.length; i++) {
                     if (todosFabricantes[i].idFabricante == fabricanteId) {
                         fab = todosFabricantes[i];
@@ -178,53 +189,38 @@
                     }
                 }
 
+                // Se encontrou o fabricante, preenche todos os inputs com os dados que vieram do banco.
                 if (fab) {
+                    // Seleciona o botão de radio correto (Pessoa Física ou Jurídica)
                     if (fab.tipo_pessoa === 'PF') {
                         document.getElementById('inlineRadio1').checked = true;
                     } else if (fab.tipo_pessoa === 'PJ') {
                         document.getElementById('inlineRadio2').checked = true;
                     }
 
-                    document.getElementById('DocFiscal').value = fab.documento_fiscal;
-                    if (!fab.documento_fiscal) document.getElementById('DocFiscal').value = '';
+                    // Preenche campos de texto; se o dado vier nulo/indefinido do banco, coloca uma string vazia ''.
+                    document.getElementById('DocFiscal').value = fab.documento_fiscal || '';
+                    document.getElementById('nome_fabricante').value = fab.nome_fabricante || '';
+                    document.getElementById('telefone_fabricante').value = fab.telefone_fabricante || '';
+                    document.getElementById('email_fabricante').value = fab.email_fabricante || '';
+                    document.getElementById('cep_fabricante').value = fab.cep || '';
+                    document.getElementById('estado_fabricante').value = fab.estado || '';
+                    document.getElementById('cidade_fabricante').value = fab.cidade || '';
+                    document.getElementById('bairro_fabricante').value = fab.bairro || '';
+                    document.getElementById('inputLogradouro').value = fab.logradouro || '';
+                    document.getElementById('inputNumero').value = fab.numero || '';
+                    document.getElementById('inputComplemento').value = fab.complemento || '';
 
-                    document.getElementById('nome_fabricante').value = fab.nome_fabricante;
-                    if (!fab.nome_fabricante) document.getElementById('nome_fabricante').value = '';
-
-                    document.getElementById('telefone_fabricante').value = fab.telefone_fabricante;
-                    if (!fab.telefone_fabricante) document.getElementById('telefone_fabricante').value = '';
-
-                    document.getElementById('email_fabricante').value = fab.email_fabricante;
-                    if (!fab.email_fabricante) document.getElementById('email_fabricante').value = '';
-
-                    document.getElementById('cep_fabricante').value = fab.cep;
-                    if (!fab.cep) document.getElementById('cep_fabricante').value = '';
-
-                    document.getElementById('estado_fabricante').value = fab.estado;
-                    if (!fab.estado) document.getElementById('estado_fabricante').value = '';
-
-                    document.getElementById('cidade_fabricante').value = fab.cidade;
-                    if (!fab.cidade) document.getElementById('cidade_fabricante').value = '';
-
-                    document.getElementById('bairro_fabricante').value = fab.bairro;
-                    if (!fab.bairro) document.getElementById('bairro_fabricante').value = '';
-
-                    document.getElementById('inputLogradouro').value = fab.logradouro;
-                    if (!fab.logradouro) document.getElementById('inputLogradouro').value = '';
-
-                    document.getElementById('inputNumero').value = fab.numero;
-                    if (!fab.numero) document.getElementById('inputNumero').value = '';
-
-                    document.getElementById('inputComplemento').value = fab.complemento;
-                    if (!fab.complemento) document.getElementById('inputComplemento').value = '';
-
+                    // Revela o formulário de edição (que inicialmente fica escondido)
                     formCampos.style.display = 'block';
                 }
             } else {
+                // Se nenhum fabricante foi selecionado (ou se selecionou a opção padrão inválida), esconde os campos.
                 formCampos.style.display = 'none';
             }
         });
 
+        // Oculta a mensagem de validação de erro assim que o usuário clica em um botão de rádio (Tipo de Pessoa)
         const radios = document.querySelectorAll('input[name="tipo_pessoa"]');
         for (let i = 0; i < radios.length; i++) {
             radios[i].addEventListener('change', function() {
@@ -232,9 +228,12 @@
             });
         }
 
+        // SALVAR AS EDIÇÕES (ENVIO DO FORMULÁRIO)
         document.getElementById('formEditarFabricante').addEventListener('submit', async function(e) {
+            // Evita o comportamento padrão do navegador de recarregar a tela.
             e.preventDefault();
 
+            // Pega o ID para saber QUAL fabricante atualizar na API
             const fabricanteId = document.getElementById('selectFabricante').value;
             if (!fabricanteId) return;
 
@@ -242,8 +241,10 @@
             const feedback = document.getElementById('mensagemFeedback');
             const btnSalvar = document.getElementById('btnSalvar');
 
+            // Ativa os estilos visuais de validação do Bootstrap (bordas vermelhas/verdes)
             form.classList.add('was-validated');
 
+            // Validação manual extra para garantir que um tipo de pessoa foi selecionado.
             const radioFeedback = document.getElementById('radioFeedback');
             const tipoPessoaSelecionado = document.querySelector('input[name="tipo_pessoa"]:checked');
             if (!tipoPessoaSelecionado) {
@@ -252,10 +253,12 @@
                 radioFeedback.style.display = 'none';
             }
 
+            // Impede a execução caso o HTML aponte que há dados em formato incorreto ou faltando
             if (!form.checkValidity() || !tipoPessoaSelecionado) {
                 return;
             }
 
+            // Reúne todos os valores preenchidos/editados em um objeto JSON organizado
             const dados = {
                 tipo_pessoa: tipoPessoaSelecionado.value,
                 documento_fiscal: document.getElementById('DocFiscal').value,
@@ -271,10 +274,12 @@
                 complemento: document.getElementById('inputComplemento').value
             };
 
+            // Trava o botão para evitar envio múltiplo acidental
             btnSalvar.disabled = true;
             btnSalvar.textContent = 'Salvando...';
 
             try {
+                // Envia as informações modificadas para o servidor por meio do método 'PUT' (Atualização)
                 const response = await fetch('/api/fabricantes/' + fabricanteId, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -283,15 +288,23 @@
 
                 const resultado = await response.json();
 
+                // Se a atualização for confirmada pelo banco de dados
                 if (response.ok) {
+                    // Monta a mensagem de sucesso
                     let mensagemSucesso = 'Fabricante atualizado com sucesso!';
                     if (resultado.message) {
                         mensagemSucesso = resultado.message;
                     }
+                    // Exibe o feedback visual na tela
                     feedback.style.display = 'block';
                     feedback.className = 'mb-3 alert alert-success';
                     feedback.textContent = mensagemSucesso;
 
+                    // ---------------------------------------------------------------------
+                    // ATUALIZAÇÃO DOS DADOS NA MEMÓRIA DA PÁGINA
+                    // ---------------------------------------------------------------------
+                    // Atualiza a variável global para que se o usuário for editar novamente
+                    // nesta mesma aba, ele puxe os dados recém-salvos.
                     let index = -1;
                     for (let i = 0; i < todosFabricantes.length; i++) {
                         if (todosFabricantes[i].idFabricante == fabricanteId) {
@@ -314,23 +327,29 @@
                         todosFabricantes[index].numero = dados.numero;
                         todosFabricantes[index].complemento = dados.complemento;
 
+                        // Se o usuário mudou o NOME do fabricante, atualiza o texto do respectivo <option> no menu de seleção
                         const opt = document.querySelector('#selectFabricante option[value="' + fabricanteId + '"]');
                         if (opt) {
                             opt.textContent = dados.nome_fabricante;
                         }
                     }
 
+                    // Exibe o modal (Pop-up) para perguntar se o usuário também quer alterar uma Marca agora
                     const modal = new bootstrap.Modal(document.getElementById('modalEditarMarca'));
                     modal.show();
 
+                    // Adiciona comportamento aos botões do pop-up
                     document.getElementById('btnSimEditarMarca').onclick = function() {
+                        // Redireciona para a página de edição de marca, já filtrando por este fabricante
                         window.location.href = 'editar_marca.html?fabricanteId=' + fabricanteId;
                     };
 
                     document.getElementById('btnNaoEditarMarca').onclick = function() {
+                        // Redireciona de volta para a visualização principal do sistema
                         window.location.href = 'visualizar_marca_fabricante.html';
                     };
                 } else {
+                    // Tratamento caso a API retorne uma falha controlada (ex: um erro de validação que veio do backend)
                     let mensagemErro = 'Erro ao atualizar.';
                     if (resultado.message) {
                         mensagemErro = resultado.message;
@@ -340,10 +359,12 @@
                     feedback.textContent = mensagemErro;
                 }
             } catch (error) {
+                // Caso o erro seja na conexão e o Javascript sequer consiga alcançar o servidor
                 feedback.style.display = 'block';
                 feedback.className = 'mb-3 alert alert-danger';
                 feedback.textContent = 'Erro de conexão com o servidor.';
             } finally {
+                // Sempre restaura o botão ao estado padrão no final da requisição (seja sucesso ou falha)
                 btnSalvar.disabled = false;
                 btnSalvar.textContent = 'Salvar Alterações';
             }

@@ -134,42 +134,61 @@
     </footer>
     
     <script>
-        // Esconde a mensagem de validação ao selecionar o tipo de pessoa
+        
+        // Seleciona todos os elementos de input do tipo radio que possuem o nome "tipo_pessoa"
         const radios = document.querySelectorAll('input[name="tipo_pessoa"]');
+        
+        // Percorre todos os botões de radio encontrados
         for (let i = 0; i < radios.length; i++) {
+            // Adiciona um evento para detectar quando o usuário altera a seleção
             radios[i].addEventListener('change', function() {
+                // Esconde a mensagem de erro/validação caso o usuário já tenha selecionado uma opção
                 document.getElementById('radioFeedback').style.display = 'none';
             });
         }
 
+        
+        // Adiciona um evento que será disparado ao submeter o formulário com ID "formFabricante"
         document.getElementById('formFabricante').addEventListener('submit', async function(e) {
+            // Impede o comportamento padrão do formulário, que seria recarregar a página.
+            // Isso permite que o envio seja tratado inteiramente via JavaScript.
             e.preventDefault();
 
+            // Mapeia os elementos HTML essenciais da página para variáveis do JavaScript.
             const form = document.getElementById('formFabricante');
-            const feedback = document.getElementById('mensagemFeedback');
-            const btnEnviar = document.getElementById('btnEnviar');
+            const feedback = document.getElementById('mensagemFeedback'); // Área onde as mensagens de sucesso/erro serão exibidas.
+            const btnEnviar = document.getElementById('btnEnviar'); // O botão de envio do formulário.
 
-            // Ativa a validação visual do Bootstrap
+            // Ativa a validação visual nativa do Bootstrap, adicionando a classe "was-validated" ao formulário.
             form.classList.add('was-validated');
 
-            // Validação manual do radio button
+
+            // Pega a referência do texto de feedback para os botões de radio (Tipo de Pessoa).
             const radioFeedback = document.getElementById('radioFeedback');
+            
+            // Tenta selecionar qual dos botões de radio está marcado no momento do envio.
             const tipoPessoaSelecionado = document.querySelector('input[name="tipo_pessoa"]:checked');
+            
+            // Verifica se NENHUM botão de radio foi selecionado.
             if (!tipoPessoaSelecionado) {
                 radioFeedback.style.display = 'block';
             } else {
                 radioFeedback.style.display = 'none';
             }
 
-            // Se o formulário não for válido, para aqui
+            // Verifica as validações nativas do HTML5 (ex: campos "required" vazios, e-mail inválido, etc.).
+            // Se o formulário NÃO for válido como um todo, a execução da função é interrompida (return).
             if (!form.checkValidity()) {
                 return;
             }
 
+
+            // Pega o botão de radio que o usuário selecionou.
             const tipoPessoaRadio = document.querySelector('input[name="tipo_pessoa"]:checked');
 
+            // Cria um objeto JavaScript (JSON) que reúne e padroniza todos os dados que foram preenchidos pelo usuário no formulário.
             const dados = {
-                tipo_pessoa: tipoPessoaRadio.value,
+                tipo_pessoa: tipoPessoaRadio.value, // Ex: "PF" ou "PJ"
                 documento_fiscal: document.getElementById('DocFiscal').value,
                 nome_fabricante: document.getElementById('nome_fabricante').value,
                 email_fabricante: document.getElementById('email_fabricante').value,
@@ -183,44 +202,67 @@
                 complemento: document.getElementById('inputComplemento').value
             };
 
+            
+            // REQUISIÇÃO PARA A API (BACKEND)
+            // ---------------------------------------------------------------------
+
+            // Desabilita o botão de enviar para impedir duplo clique e múltiplos envios indesejados.
             btnEnviar.disabled = true;
+            // Altera o texto do botão para informar ao usuário que o processo está em andamento.
             btnEnviar.textContent = 'Enviando...';
 
             try {
+                // Dispara uma requisição HTTP do tipo POST para a rota do servidor'/api/fabricantes'.
                 const response = await fetch('/api/fabricantes', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dados)
+                    headers: { 'Content-Type': 'application/json' }, // Informa que os dados enviados estão em formato JSON.
+                    body: JSON.stringify(dados) // Transforma o objeto JavaScript "dados" em uma string JSON para envio.
                 });
 
+                // Converte a resposta retornada pelo servidor de volta para um objeto JavaScript.
                 const resultado = await response.json();
 
+                // Verifica se a resposta HTTP do servidor teve sucesso (códigos 200 a 299).
                 if (response.ok) {
+                    // Exibe a div de feedback na tela.
                     feedback.style.display = 'block';
+                    // Altera a classe CSS para deixar a mensagem verde (alert-success do Bootstrap).
                     feedback.className = 'mb-3 alert alert-success';
+                    // Configura o texto de sucesso retornado pela API.
                     feedback.textContent = resultado.message + ' Redirecionando para cadastro de marca...';
+                    
+                    // Limpa todos os campos do formulário para o estado inicial.
                     form.reset();
+                    // Remove a classe de validação visual do Bootstrap.
                     form.classList.remove('was-validated');
 
-                    // Redireciona para cadastro de marca com o ID do fabricante recém-cadastrado
+                    // Define um temporizador (1.5 segundos) antes de redirecionar o usuário para a próxima tela.
+                    // Redireciona para cadastro de marca com o ID e Nome do fabricante recém-cadastrado.
                     setTimeout(() => {
+                        // Constrói parâmetros de URL seguros para carregar os dados.
                         const params = new URLSearchParams({
                             fabricanteId: resultado.id,
                             fabricanteNome: resultado.nome_fabricante
                         });
+                        // Muda a janela do navegador para a página de cadastro de marca.
                         window.location.href = 'cadastro_marca.html?' + params.toString();
                     }, 1500);
                 } else {
+                    // Caso o servidor retorne um erro (ex: CPF já existe), exibe a mensagem em vermelho (alert-danger).
                     feedback.style.display = 'block';
                     feedback.className = 'mb-3 alert alert-danger';
+                    // Usa a mensagem de erro da API ou uma genérica.
                     feedback.textContent = resultado.message || 'Erro ao cadastrar.';
                 }
             } catch (error) {
+                // Esse bloco "catch" captura erros críticos de rede (ex: servidor offline, sem internet).
                 feedback.style.display = 'block';
                 feedback.className = 'mb-3 alert alert-danger';
                 feedback.textContent = 'Erro de conexão com o servidor. Verifique se o servidor está rodando.';
-                console.error('Erro:', error);
+                console.error('Erro:', error); // Loga o erro técnico no console do navegador para os desenvolvedores.
             } finally {
+                // O bloco "finally" SEMPRE é executado, dando erro ou não.
+                // Restaura o botão de enviar ao estado normal para que o usuário possa tentar novamente.
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar';
             }

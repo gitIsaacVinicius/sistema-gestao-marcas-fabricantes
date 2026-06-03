@@ -108,60 +108,71 @@
         crossorigin="anonymous"></script>
 
     <script>
-        // Obter o ID e nome do fabricante da URL (vindo do cadastro de fabricante)
+        
+        // Obtém o ID e nome do fabricante que foram passados pela URL na etapa anterior.
         const urlParams = new URLSearchParams(window.location.search);
         const fabricanteIdParam = urlParams.get('fabricanteId');
+        // Converte o ID para número (inteiro), pois os parâmetros da URL são strings.
         const fabricanteId = fabricanteIdParam ? parseInt(fabricanteIdParam, 10) : null;
         const fabricanteNome = urlParams.get('fabricanteNome');
 
-        // Mostra uma mensagem informativa com o fabricante associado
+        // Verifica se os dados do fabricante vieram corretamente pela URL.
         if (fabricanteId && fabricanteNome) {
+            // Se sim, cria um alerta azul (informativo) dizendo a qual fabricante essa marca pertencerá.
             const infoDiv = document.createElement('div');
             infoDiv.className = 'alert alert-info mt-3';
             infoDiv.innerHTML = 'A marca será vinculada ao fabricante <strong>' + fabricanteNome + '</strong>, cadastrado na etapa anterior.';
             document.getElementById('formMarca').insertBefore(infoDiv, document.getElementById('formMarca').firstChild);
         } else {
-            // Sem fabricante associado — mostra alerta e desabilita o envio
+            // Se não vieram dados (acesso direto à página, por exemplo), mostra um alerta de erro e impede o cadastro.
             const alertDiv = document.createElement('div');
             alertDiv.className = 'alert alert-danger mt-3';
             alertDiv.textContent = 'Nenhum fabricante foi selecionado. Cadastre um fabricante antes de cadastrar uma marca.';
             document.getElementById('formMarca').insertBefore(alertDiv, document.getElementById('formMarca').firstChild);
+            // Bloqueia o botão de enviar para impedir envio de marca sem fabricante.
             document.getElementById('btnEnviar').disabled = true;
         }
 
-        // Pré-visualização da imagem ao inserir URL
+        // PRÉ-VISUALIZAÇÃO DO LOGOTIPO (IMAGEM)
         const inputLogotipo = document.getElementById('inputLogotipo');
         const previewImg = document.getElementById('previewImg');
         const previewPlaceholder = document.getElementById('previewPlaceholder');
 
+        // Função responsável por carregar a imagem dinamicamente quando o usuário digita a URL.
         function atualizarPreview() {
             const url = inputLogotipo.value.trim();
             if (url) {
                 previewImg.src = url;
                 previewImg.style.display = 'block';
                 previewPlaceholder.style.display = 'none';
-                // Se a imagem falhar ao carregar, mostra o placeholder
+                
+                // Se o link for inválido ou a imagem falhar ao carregar, esconde a imagem e mostra erro.
                 previewImg.onerror = function () {
                     previewImg.style.display = 'none';
                     previewPlaceholder.style.display = '';
                     previewPlaceholder.textContent = 'URL inválida';
                 };
+                
+                // Se a imagem carregar corretamente, restaura o texto do placeholder (que ficará oculto de qualquer forma).
                 previewImg.onload = function () {
                     previewPlaceholder.textContent = 'Pré-visualização';
                 };
             } else {
+                // Se o campo de URL estiver vazio, mostra a caixa vazia de pré-visualização.
                 previewImg.style.display = 'none';
                 previewPlaceholder.style.display = '';
                 previewPlaceholder.textContent = 'Pré-visualização';
             }
         }
 
+        // Observa o campo de texto. Quando o usuário digita (input) ou cola (paste), atualiza a imagem.
         inputLogotipo.addEventListener('input', atualizarPreview);
         inputLogotipo.addEventListener('paste', function () {
+            // O timeout é necessário no 'paste' para dar tempo de o navegador registrar o valor colado no campo.
             setTimeout(atualizarPreview, 100);
         });
 
-        // Resetar preview quando o formulário for resetado
+        // Evento disparado quando o formulário é limpo (reset), restaurando o quadrado da imagem ao estado original.
         document.getElementById('formMarca').addEventListener('reset', function () {
             setTimeout(function () {
                 previewImg.style.display = 'none';
@@ -171,32 +182,36 @@
             }, 0);
         });
 
-        // Enviar formulário
+        
         document.getElementById('formMarca').addEventListener('submit', async function (e) {
+            // Impede a página de recarregar.
             e.preventDefault();
 
             const form = document.getElementById('formMarca');
             const feedback = document.getElementById('mensagemFeedback');
             const btnEnviar = document.getElementById('btnEnviar');
 
-            // Ativa a validação visual do Bootstrap
+            // Ativa a validação visual do Bootstrap.
             form.classList.add('was-validated');
 
-            // Se o formulário não for válido, para aqui
+            // Verifica as restrições HTML (campos obrigatórios, URLs válidas, etc).
             if (!form.checkValidity()) {
                 return;
             }
 
+            // Agrupa os dados que serão enviados ao banco de dados em um formato JSON.
             const dados = {
-                fk_idFabricante: fabricanteId,
+                fk_idFabricante: fabricanteId, // Associa a marca ao fabricante recebido pela URL.
                 nome_marca: document.getElementById('inputNome').value,
                 logotipo_marca: document.getElementById('inputLogotipo').value || null
             };
 
+            // Bloqueia o botão enquanto a requisição está em andamento.
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Enviando...';
 
             try {
+                // Faz a chamada HTTP POST para a rota da API no servidor.
                 const response = await fetch('/api/marcas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -204,45 +219,56 @@
                 });
 
                 let resultado;
+                // Tenta extrair a resposta JSON da API.
                 try {
                     resultado = await response.json();
                 } catch (jsonError) {
+                    // Se o backend retornar um erro fatal que não seja JSON, trata esse erro.
                     const textoResposta = await response.text().catch(() => 'sem corpo');
                     console.error('Resposta não é JSON válido:', textoResposta);
                     throw new Error('Resposta inválida do servidor (status ' + response.status + ')');
                 }
 
+                // Se a requisição for bem sucedida (status 200/201).
                 if (response.ok) {
-                    // Cadastro bem-sucedido: reseta o formulário e abre o modal
+                    // Limpa o formulário e remove os alertas visuais de validação.
                     form.reset();
                     form.classList.remove('was-validated');
                     feedback.style.display = 'none';
 
+                    // Abre um pop-up (Modal do Bootstrap) e pergunta se o usuário quer cadastrar outra marca.
                     const modal = new bootstrap.Modal(document.getElementById('modalOutraMarca'));
                     modal.show();
                 } else {
+                    // Se a API retornar erro (ex: problema no banco de dados), exibe a mensagem de erro.
                     feedback.style.display = 'block';
                     feedback.className = 'mb-3 alert alert-danger';
                     feedback.textContent = resultado.message || 'Erro ao cadastrar.';
                 }
             } catch (error) {
+                // Captura falhas de rede (servidor fora do ar).
                 feedback.style.display = 'block';
                 feedback.className = 'mb-3 alert alert-danger';
                 feedback.textContent = 'Erro: ' + error.message;
                 console.error('Erro completo:', error);
             } finally {
+                // Restaura o botão de enviar de volta ao seu estado clicável.
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar';
             }
         });
 
-        // Botão "Sim" — fecha o modal e o formulário fica limpo para novo cadastro
+        // -------------------------------------------------------------------------
+        // CONTROLE DO MODAL (POP-UP DE SUCESSO)
+        // -------------------------------------------------------------------------
+
+        // Se o usuário clicar em "Sim" no modal, apenas fecha o modal e mantém o usuário na tela limpa para novo cadastro.
         document.getElementById('btnSimOutraMarca').addEventListener('click', function () {
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalOutraMarca'));
             modal.hide();
         });
 
-        // Botão "Não" — redireciona para a página de visualização
+        // Se o usuário clicar em "Não", redireciona ele para a lista geral de marcas e fabricantes.
         document.getElementById('btnNaoOutraMarca').addEventListener('click', function () {
             window.location.href = 'visualizar_marca_fabricante.html';
         });

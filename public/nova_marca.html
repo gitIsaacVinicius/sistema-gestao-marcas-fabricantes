@@ -113,13 +113,17 @@
         crossorigin="anonymous"></script>
 
     <script>
+        
+        // CARREGAMENTO DOS FABRICANTES
         document.addEventListener('DOMContentLoaded', async function () {
             try {
-                // Carregar fabricantes
+                // Ao carregar a página, busca a lista de fabricantes ativos na API
                 const resFabricantes = await fetch('/api/fabricantes');
                 if (resFabricantes.ok) {
                     const fabricantes = await resFabricantes.json();
                     const selectFabricante = document.getElementById('selectFabricante');
+                    
+                    // Preenche o menu dropdown (caixa de seleção) com os fabricantes retornados
                     for (let i = 0; i < fabricantes.length; i++) {
                         const fab = fabricantes[i];
                         const option = document.createElement('option');
@@ -133,64 +137,79 @@
             }
         });
 
-        // Pré-visualização da imagem ao inserir URL
+        
+        // PRÉ-VISUALIZAÇÃO DA IMAGEM DA MARCA (LOGOTIPO)
         const inputLogotipo = document.getElementById('inputLogotipo');
         const previewImg = document.getElementById('previewImg');
         const previewPlaceholder = document.getElementById('previewPlaceholder');
 
+        // Função responsável por exibir a imagem assim que o usuário colar um link
         function atualizarPreview() {
             const url = inputLogotipo.value.trim();
             if (url) {
+                // Tenta carregar a URL fornecida na tag <img>
                 previewImg.src = url;
                 previewImg.style.display = 'block';
                 previewPlaceholder.style.display = 'none';
-                // Se a imagem falhar ao carregar, mostra o placeholder
+                
+                // Se a imagem falhar ao carregar (link quebrado ou formato não suportado), exibe um aviso de erro
                 previewImg.onerror = function () {
                     previewImg.style.display = 'none';
                     previewPlaceholder.style.display = '';
                     previewPlaceholder.textContent = 'URL inválida';
                 };
+                // Se a imagem carregar com sucesso, mantém o texto padrão de ajuda
                 previewImg.onload = function () {
                     previewPlaceholder.textContent = 'Pré-visualização';
                 };
             } else {
+                // Se o campo for esvaziado, esconde a imagem e mostra apenas a caixa cinza de placeholder
                 previewImg.style.display = 'none';
                 previewPlaceholder.style.display = '';
                 previewPlaceholder.textContent = 'Pré-visualização';
             }
         }
 
+        // Executa a função sempre que o usuário digitar algo ('input')
         inputLogotipo.addEventListener('input', atualizarPreview);
+        
+        // Executa a função sempre que o usuário colar um link ('paste'), com um pequeno atraso para o navegador processar o texto
         inputLogotipo.addEventListener('paste', function () {
             setTimeout(atualizarPreview, 100);
         });
 
-        // Enviar formulário
+        
+        // ENVIO DO FORMULÁRIO DE NOVA MARCA (INTEGRAÇÃO COM API)
         document.getElementById('formNovaMarca').addEventListener('submit', async function (e) {
+            // Impede a página de dar um refresh automático, o que perderia todos os dados digitados
             e.preventDefault();
 
             const form = document.getElementById('formNovaMarca');
             const feedback = document.getElementById('mensagemFeedback');
             const btnEnviar = document.getElementById('btnEnviar');
 
-            // Ativa a validação visual do Bootstrap
+            // Adiciona classes do Bootstrap que mostram validação visual
             form.classList.add('was-validated');
 
-            // Se o formulário não for válido, para aqui
+            // Verifica se todos os campos marcados como 'required' no HTML foram devidamente preenchidos
             if (!form.checkValidity()) {
+                // Se faltar algo (como esquecer de concordar com os termos), interrompe o envio
                 return;
             }
 
+            // Captura os valores digitados e os formata em um objeto JSON
             const dados = {
                 fk_idFabricante: parseInt(document.getElementById('selectFabricante').value),
                 nome_marca: document.getElementById('inputNome').value,
                 logotipo_marca: document.getElementById('inputLogotipo').value || null
             };
 
+            // Desabilita o botão para evitar que o usuário clique duas vezes e crie duas marcas repetidas
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Enviando...';
 
             try {
+                // Faz a requisição HTTP POST para o backend
                 const response = await fetch('/api/marcas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -199,34 +218,44 @@
 
                 let resultado;
                 try {
+                    // Tenta converter a resposta do servidor para JSON
                     resultado = await response.json();
                 } catch (jsonError) {
+                    // Tratamento caso o servidor tenha quebrado e retornado um HTML de erro genérico ao invés de JSON
                     const textoResposta = await response.text().catch(() => 'sem corpo');
                     throw new Error('Resposta inválida do servidor (status ' + response.status + ')');
                 }
 
                 if (response.ok) {
+                    // Limpa o formulário após salvar com sucesso
                     form.reset();
                     form.classList.remove('was-validated');
                     feedback.style.display = 'none';
 
+                    // Exibe a janela de sucesso (Modal do Bootstrap)
                     const modal = new bootstrap.Modal(document.getElementById('modalSucesso'));
                     modal.show();
                 } else {
+                    // Se a API retornou erro (por exemplo, "Nome da Marca já existe")
                     feedback.style.display = 'block';
                     feedback.className = 'mb-3 alert alert-danger';
                     feedback.textContent = resultado.message || 'Erro ao cadastrar.';
                 }
             } catch (error) {
+                // Caso não haja internet ou o backend (Node.js) esteja desligado
                 feedback.style.display = 'block';
                 feedback.className = 'mb-3 alert alert-danger';
                 feedback.textContent = 'Erro: ' + error.message;
             } finally {
+                // No fim de tudo, reativa o botão
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar';
             }
         });
 
+
+        // BOTÃO DE CONFIRMAÇÃO DO MODAL
+        // Quando o usuário clicar em "OK" no pop-up de sucesso, redireciona para a tela de visualização principal
         document.getElementById('btnOkSucesso').addEventListener('click', function () {
             window.location.href = 'visualizar_marca_fabricante.html';
         });

@@ -67,98 +67,98 @@
         crossorigin="anonymous"></script>
 
     <script>
+        
+        // Aguarda todo o documento HTML (DOM) ser carregado antes de executar os scripts.
         document.addEventListener('DOMContentLoaded', async function () {
-            // Carregar fabricantes
+            
+            // Faz uma requisição GET para a API que busca todos os fabricantes cadastrados.
             const resFabricantes = await fetch('/api/fabricantes');
+            
+            // Se a requisição for bem-sucedida.
             if (resFabricantes.ok) {
+                // Converte a resposta para um array de objetos JSON.
                 const fabricantes = await resFabricantes.json();
+                
+                // Pega a referência da caixa de seleção (dropdown) no HTML.
                 const selectFabricante = document.getElementById('selectFabricante');
+                
+                // Percorre a lista de fabricantes devolvida pelo backend.
                 for (let i = 0; i < fabricantes.length; i++) {
                     const fab = fabricantes[i];
+                    // Cria uma nova opção (<option>) dinamicamente para o select.
                     const option = document.createElement('option');
-                    option.value = fab.idFabricante;
-                    option.textContent = fab.nome_fabricante;
+                    option.value = fab.idFabricante; // O valor oculto enviado no formulário será o ID.
+                    option.textContent = fab.nome_fabricante; // O texto legível que aparece para o usuário.
+                    // Adiciona essa opção dentro da tag <select>.
                     selectFabricante.appendChild(option);
                 }
             }
 
+            // Variável para armazenar a instância do Modal (Pop-up) do Bootstrap.
             let confirmacaoModal;
 
+            
             document.getElementById('formDesativarFabricante').addEventListener('submit', function (e) {
+                // Previne o envio nativo do formulário para evitar recarregar a tela.
                 e.preventDefault();
 
                 const selectFabricante = document.getElementById('selectFabricante');
 
+                // Validação de segurança: verifica se o usuário de fato selecionou um fabricante válido.
                 if (!selectFabricante.value) {
                     alert('Por favor, selecione um fabricante.');
                     return;
                 }
 
+                // Se o modal ainda não tiver sido inicializado, inicializa-o agora.
                 if (!confirmacaoModal) {
                     confirmacaoModal = new bootstrap.Modal(document.getElementById('confirmacaoModal'));
                 }
+                // Exibe o modal na tela perguntando se o usuário tem certeza da ação.
                 confirmacaoModal.show();
             });
 
+            
+            // CONFIRMAÇÃO E DESATIVAÇÃO (COMUNICAÇÃO COM O BACKEND)
+            // Este evento é disparado quando o usuário clica no botão "Desativar" DENTRO do pop-up.
             document.getElementById('btnConfirmarDesativar').addEventListener('click', async function () {
                 const selectFabricante = document.getElementById('selectFabricante');
+                // Pega o ID do fabricante que está atualmente selecionado no dropdown e converte para número.
                 const fabricanteId = parseInt(selectFabricante.value);
                 const btnConfirmarDesativar = document.getElementById('btnConfirmarDesativar');
+                // Guarda o texto original ("Desativar") para poder restaurá-lo depois.
                 const originalText = btnConfirmarDesativar.innerHTML;
 
+                // Desabilita o botão para impedir que o usuário clique várias vezes durante o processamento.
                 btnConfirmarDesativar.disabled = true;
+                // Muda o visual do botão, inserindo um ícone de carregamento (spinner).
                 btnConfirmarDesativar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Desativando...';
 
                 try {
-                    // Buscar marcas do fabricante
-                    const resMarcas = await fetch(`/api/marcas?fabricanteId=${fabricanteId}`);
-                    if (resMarcas.ok) {
-                        const marcas = await resMarcas.json();
-                        
-                        // Desativar marcas
-                        for (let i = 0; i < marcas.length; i++) {
-                            const marcaId = marcas[i].idMarca;
-                            const resUpdateMarca = await fetch(`/api/marcas/${marcaId}`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    nome_marca: marcas[i].nome_marca,
-                                    logotipo_marca: marcas[i].logotipo_marca,
-                                    status_marca: 0
-                                })
-                            });
-
-                            if (!resUpdateMarca.ok) {
-                                throw new Error(`Erro ao desativar marca ${marcas[i].nome_marca}`);
-                            }
-                        }
-                    }
-
-                    // Desativar fabricante
+                    // DESATIVAR O FABRICANTE (backend desativa as marcas em cascata)
                     const resUpdateFabricante = await fetch(`/api/fabricantes/${fabricanteId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            nome_fabricante: selectFabricante.options[selectFabricante.selectedIndex].text,
-                            status_fabricante: 0
-                        })
+                        method: 'DELETE'
                     });
 
+                    // Se a desativação do fabricante for concluída com sucesso.
                     if (resUpdateFabricante.ok) {
+                        // Esconde o pop-up de confirmação.
                         if (confirmacaoModal) confirmacaoModal.hide();
-                        alert('Fabricante desativado com sucesso!');
+                        // Informa sucesso.
+                        alert('Fabricante e suas marcas associadas foram desativados com sucesso!');
+                        // Redireciona o usuário de volta para a lista geral.
                         window.location.href = 'visualizar_marca_fabricante.html';
                     } else {
-                        throw new Error('Erro ao desativar fabricante');
+                        // Trata erros vindos do endpoint do fabricante.
+                        throw new Error('Erro ao desativar fabricante no servidor.');
                     }
                 } catch (error) {
-                    console.error('Erro:', error);
+                    // Loga falhas (como rede ou erro no backend) e mostra na tela do usuário.
+                    console.error('Erro completo:', error);
                     alert('Erro: ' + error.message);
                 } finally {
+                    // Esse bloco roda sempre (dando erro ou sucesso).
+                    // Restaura o botão do pop-up ao normal caso a operação falhe e o usuário continue na página.
                     btnConfirmarDesativar.disabled = false;
                     btnConfirmarDesativar.innerHTML = originalText;
                 }
